@@ -3,12 +3,20 @@
 ## Summary
 
 <!-- Describe your data science project in max. 5 sentences. -->
-This projects analyzes XY.
+This project aims to investigate the impact of climate on a power grid that relies more and more on wind/solar energy, as is the case in Germany. 
+To this end, the correlation between climate data for Germany and wind/solar energy production is analyzed to help answer research questions such as:
+
+1. Is there a correlation between weather conditions and renewable energy production, and if so, is it linear or exponential?
+2. How reliable are renewable energy sources? Do extreme weather conditions affect grid stability?
+3. What is the potential for energy storage during peak production periods?
+4. What is the trend for renewable energy generation in Germany?
 
 ## Rationale
 
 <!-- Outline the impact of the analysis, e.g. which pains it solves. -->
-The analysis helps XY to do YZ.
+Analyzing the relationship between climate data and renewable energy generation is important for understanding the reliability of renewable energy sources.
+The results of this analysis could help readers make data-informed decisions about renewable energy and its use. 
+Ideally, this analysis can make a small contribution to the transition to sustainable and efficient energy systems, which is critical to reducing carbon emissions and mitigating climate change.
 
 ## Datasources
 
@@ -21,7 +29,7 @@ The analysis helps XY to do YZ.
 
 This dataset contains meteorological measurements and observations.
 
-### Datasource2: DWD Climate Data
+### Datasource2: Open Power System Data
 * Metadata URL: https://data.open-power-system-data.org/time_series/2020-10-06
 * Data URL: https://data.open-power-system-data.org/time_series/opsd-time_series-2020-10-06.zip
 * Data Type: csv

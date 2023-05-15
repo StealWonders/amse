@@ -2,3 +2,5 @@
 .vscode/
 .env/
 .venv/
+data/processed_data/
+data/raw_data/

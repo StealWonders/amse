@@ -1,6 +1,6 @@
 .idea/
 .vscode/
-.env/
-.venv/
+env/
+venv/
 data/processed_data/
 data/raw_data/

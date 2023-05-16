@@ -4,24 +4,23 @@
 import datetime
 from rich import print
 
-
-msgtype_prefixes: dict = {
-    "info":     ["bold",          "*"],
-    "status":   ["bold magenta",  "x"],
-    "success":  ["bold green",    "+"],
-    "failure":  ["bold red",      "-"],
-    "debug":    ["bold blue",     "DEBUG"],
-    "error":    ["bold red",      "!"],
+msg_type_prefixes: dict = {
+    "info": ["bold", "*"],
+    "status": ["bold magenta", "x"],
+    "success": ["bold green", "+"],
+    "failure": ["bold red", "-"],
+    "debug": ["bold blue", "DEBUG"],
+    "error": ["bold red", "!"],
 }
 
 
-def log(message: str, msg_type: str = "info", timestamp = False, ret_str = False):
-    prefix_style, prefix_text = msgtype_prefixes[msg_type]
+def log(message: str, msg_type: str = "info", timestamp=False, ret_str=False):
+    prefix_style, prefix_text = msg_type_prefixes[msg_type]
     if prefix_style is None:
         # invalid or default style
-        prefix_style, prefix_text = msgtype_prefixes["info"]
+        prefix_style, prefix_text = msg_type_prefixes["info"]
 
-    time: str = (" " + datetime.datetime.now().strftime("%H:%M:%S"))  if timestamp else ""
+    time: str = (" " + datetime.datetime.now().strftime("%H:%M:%S")) if timestamp else ""
     # build message
     formatted_message = f"[[{prefix_style}]{prefix_text}[/{prefix_style}]]{time} {message}"
 

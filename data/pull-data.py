@@ -12,103 +12,113 @@ from rich.progress import track
 from logger import log
 
 raw_dir: str = "raw_data"
-db_connection_uri: str = "sqlite:///../data.sqlite"
+db_connection_uri: str = "sqlite:///processed_data/data.sqlite"
+# db_connection_uri: str = "sqlite:///../data.sqlite"
 engine = sqlalchemy.create_engine(db_connection_uri)
 
 
 def main():
-    print("Pulling data...")
+    log("Starting data collector", "info")
+    pull_power_data()
+    pull_weather_data()
+    log("Completed data collection", timestamp=True)
 
-    # power_data_src: str = "https://data.open-power-system-data.org/time_series/2020-10-06/time_series.sqlite"
-    #
-    # # Create a raw_data folder if it doesn't exist
-    # if not os.path.exists("raw_data"):
-    #     os.makedirs("raw_data")
-    #
-    # # Check if power_data.sqlite exists
-    # if not os.path.exists("raw_data/power_data.sqlite"):
-    #
-    #     # Download time_series database for usage in pandas dataframe
-    #     response = requests.get(power_data_src)
-    #     if response.status_code == 200:
-    #         with open("raw_data/power_data.sqlite", "wb") as file:
-    #             file.write(response.content)
-    #         print("Power data downloaded successfully")
-    #     else:
-    #         print("Error: could not download power data")
-    #
-    # else:
-    #     print("Power data already exists (skipping download)")
-    #
-    # columns: list[str] = [
-    #     "utc_timestamp",
-    #     "cet_cest_timestamp",
-    #     "DE_load_actual_entsoe_transparency",
-    #     "DE_load_forecast_entsoe_transparency",
-    #     "DE_solar_capacity",
-    #     "DE_solar_generation_actual",
-    #     "DE_solar_profile",
-    #     "DE_wind_capacity",
-    #     "DE_wind_generation_actual",
-    #     "DE_wind_profile",
-    #     "DE_wind_offshore_capacity",
-    #     "DE_wind_offshore_generation_actual",
-    #     "DE_wind_offshore_profile",
-    #     "DE_wind_onshore_capacity",
-    #     "DE_wind_onshore_generation_actual",
-    #     "DE_wind_onshore_profile",
-    #     "DE_50hertz_load_actual_entsoe_transparency",
-    #     "DE_50hertz_load_forecast_entsoe_transparency",
-    #     "DE_50hertz_solar_generation_actual",
-    #     "DE_50hertz_wind_generation_actual",
-    #     "DE_50hertz_wind_offshore_generation_actual",
-    #     "DE_50hertz_wind_onshore_generation_actual",
-    #     "DE_LU_load_actual_entsoe_transparency",
-    #     "DE_LU_load_forecast_entsoe_transparency",
-    #     "DE_LU_price_day_ahead",
-    #     "DE_LU_solar_generation_actual",
-    #     "DE_LU_wind_generation_actual",
-    #     "DE_LU_wind_offshore_generation_actual",
-    #     "DE_LU_wind_onshore_generation_actual",
-    #     "DE_amprion_load_actual_entsoe_transparency",
-    #     "DE_amprion_load_forecast_entsoe_transparency",
-    #     "DE_amprion_solar_generation_actual",
-    #     "DE_tennet_load_actual_entsoe_transparency",
-    #     "DE_tennet_load_forecast_entsoe_transparency",
-    #     "DE_tennet_solar_generation_actual",
-    #     "DE_tennet_wind_generation_actual",
-    #     "DE_tennet_wind_offshore_generation_actual",
-    #     "DE_tennet_wind_onshore_generation_actual",
-    #     "DE_transnetbw_load_actual_entsoe_transparency",
-    #     "DE_transnetbw_load_forecast_entsoe_transparency",
-    #     "DE_transnetbw_solar_generation_actual",
-    #     "DE_transnetbw_wind_onshore_generation_actual",
-    # ]
-    #
-    # query: str = 'SELECT {} FROM time_series_60min_singleindex'.format(", ".join(columns))
-    #
-    # connection = sqlite3.connect("raw_data/power_data.sqlite")
-    # data_frame = pandas.read_sql_query(query, connection)
-    # connection.close()
-    #
-    # # Debug print
+
+def pull_power_data():
+    power_data_src: str = "https://data.open-power-system-data.org/time_series/2020-10-06/time_series.sqlite"
+
+    # Create a raw_data folder if it doesn't exist
+    if not os.path.exists("raw_data"):
+        os.makedirs("raw_data")
+
+    # Check if power_data.sqlite exists
+    if not os.path.exists("raw_data/power_data.sqlite"):
+
+        # Download time_series database for usage in pandas dataframe
+        response = requests.get(power_data_src)
+        if response.status_code == 200:
+            with open("raw_data/power_data.sqlite", "wb") as file:
+                file.write(response.content)
+            log("Downloaded power_data", "success")
+        else:
+            log("Could not download power_data", "error")
+
+    else:
+        log("Found power_data files (skipping download)", "success")
+
+    # Filter the original dataset to only include the columns we need
+    columns: list[str] = [
+        "utc_timestamp",
+        "cet_cest_timestamp",
+        "DE_load_actual_entsoe_transparency",
+        "DE_load_forecast_entsoe_transparency",
+        "DE_solar_capacity",
+        "DE_solar_generation_actual",
+        "DE_solar_profile",
+        "DE_wind_capacity",
+        "DE_wind_generation_actual",
+        "DE_wind_profile",
+        "DE_wind_offshore_capacity",
+        "DE_wind_offshore_generation_actual",
+        "DE_wind_offshore_profile",
+        "DE_wind_onshore_capacity",
+        "DE_wind_onshore_generation_actual",
+        "DE_wind_onshore_profile",
+        "DE_50hertz_load_actual_entsoe_transparency",
+        "DE_50hertz_load_forecast_entsoe_transparency",
+        "DE_50hertz_solar_generation_actual",
+        "DE_50hertz_wind_generation_actual",
+        "DE_50hertz_wind_offshore_generation_actual",
+        "DE_50hertz_wind_onshore_generation_actual",
+        "DE_LU_load_actual_entsoe_transparency",
+        "DE_LU_load_forecast_entsoe_transparency",
+        "DE_LU_price_day_ahead",
+        "DE_LU_solar_generation_actual",
+        "DE_LU_wind_generation_actual",
+        "DE_LU_wind_offshore_generation_actual",
+        "DE_LU_wind_onshore_generation_actual",
+        "DE_amprion_load_actual_entsoe_transparency",
+        "DE_amprion_load_forecast_entsoe_transparency",
+        "DE_amprion_solar_generation_actual",
+        "DE_tennet_load_actual_entsoe_transparency",
+        "DE_tennet_load_forecast_entsoe_transparency",
+        "DE_tennet_solar_generation_actual",
+        "DE_tennet_wind_generation_actual",
+        "DE_tennet_wind_offshore_generation_actual",
+        "DE_tennet_wind_onshore_generation_actual",
+        "DE_transnetbw_load_actual_entsoe_transparency",
+        "DE_transnetbw_load_forecast_entsoe_transparency",
+        "DE_transnetbw_solar_generation_actual",
+        "DE_transnetbw_wind_onshore_generation_actual",
+    ]
+
+    query: str = 'SELECT {} FROM time_series_60min_singleindex'.format(", ".join(columns))
+
+    connection = sqlite3.connect("raw_data/power_data.sqlite")
+    data_frame = pandas.read_sql_query(query, connection)
+    connection.close()
+
+    # Debug print
     # print(data_frame)
-    #
-    # # Create a processed_data folder if it doesn't exist
-    # if not os.path.exists("processed_data"):
-    #     os.makedirs("processed_data")
-    #
-    # # Save data to a sqlite database
-    # data_frame.to_sql("power_data", sqlite3.connect("processed_data/power_data.sqlite"), if_exists="replace")
 
-    # ----------------------------------------
+    # Create a processed_data folder if it doesn't exist
+    if not os.path.exists("processed_data"):
+        os.makedirs("processed_data")
 
-    ftp_uri: str = "opendata.dwd.de"
+    # Save data to a sqlite database
+    if sqlalchemy.inspect(engine).has_table("power_data"):
+        log(f"Found power_data table (skipping extraction)", "success")
+    else:
+        data_frame.to_sql("power_data", engine, if_exists="replace", index=False)
+        log("Extracted power_data", "success")
+
+
+def pull_weather_data():
     data_sources = [
         {
             "name": "station_data",
             "path": "climate_environment/CDC/help/RR_Tageswerte_Beschreibung_Stationen.txt",
-            "columns": ["column1", "column2", "column3"]
+            "columns": ["Stations_id", "geoBreite", "geoLaenge"]
         },
         {
             "name": "rain_data",
@@ -131,23 +141,19 @@ def main():
             "columns": ["STATIONS_ID", "MESS_DATUM", "DK_TER", "FK_TER"]
         }
     ]
-
-    log(f"Pipeline started", timestamp=True)
+    ftp_uri: str = "opendata.dwd.de"
 
     for data_src in data_sources:
-        # NOTE: If you suspect any issues with the downloaded files, you can delete or move the respective directory
-        #       containing the downloaded files. Running the script again will re-download the contents of the directory.
-
-        if (os.path.exists(os.path.join(raw_dir, data_src['name']))):
-            log(f"Found {data_src['name']} files", "success")
+        if os.path.exists(os.path.join(raw_dir, data_src['name'])):
+            log(f"Found {data_src['name']} files (skipping download)", "success")
         else:
             download(ftp_uri, data_src['name'], data_src['path'])
             log(f"Downloaded {data_src['name']}", "success")
 
         if sqlalchemy.inspect(engine).has_table(data_src["name"]):
-            log(f"Found {data_src['name']} table", "success")
+            log(f"Found {data_src['name']} table (skipping extraction)", "success")
         else:
-            extract_to_db(data_src['name'], data_src['columns'])
+            extract_data_source(data_src['name'], data_src["columns"])
             log(f"Extracted {data_src['name']}", "success")
 
     log(f"Pipeline completed", timestamp=True)
@@ -161,7 +167,7 @@ def download(ftp_uri: str, data_src_name: str, path: str):
     ftp.cwd(folder_path)
 
     # Get a list of all files
-    files: list[str] = None
+    files: list[str] = []
     if file_name is None or file_name == "":
         files = ftp.nlst()
     else:
@@ -184,25 +190,45 @@ def download(ftp_uri: str, data_src_name: str, path: str):
     ftp.quit()
 
 
-def extract_to_db(data_src_name: str, filter_items: str):
-    folder: str = os.path.join(raw_dir, data_src_name)
+def extract_data_source(data_src_name: str, filter_items: list[str]):
+    path: str = os.path.join(raw_dir, data_src_name)
+
+    # # Check if folder contains single file (e.g. station_data)
+    # files = os.listdir(path)
+    # if len(files) == 1:
+    #     with open(os.path.join(path, files[0]), "r") as file:
+    #         insert_into_db(file, data_src_name, filter_items)
+    #     return
+
     # Get a list of all zip files in the folder
-    zip_files = [file for file in os.listdir(folder) if file.endswith(".zip")]
+    zip_files = [file for file in os.listdir(path) if file.endswith(".zip")]
+
     # Iterate over the zips with a progress bar
     desc = log(f"Extracting {data_src_name} into database ", "status", ret_str=True)
+
     for zip_file in track(zip_files, description=desc, transient=True):
-        zip_path: str = os.path.join(folder, zip_file)
+        zip_path: str = os.path.join(path, zip_file)
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
+
             # Get a list of member files contained in the zip file (excluding metadata files)
             member_files = [member for member in zip_ref.namelist() if not member.startswith("Metadaten_")]
+
             for member in member_files:
                 # Read each member file into a pandas DataFrame
-                with zip_ref.open(name=member, mode="r") as tmpfile:
-                    df = pandas.read_csv(tmpfile, sep=";")
-                    # Remove unnecessary columns from the DataFrame
-                    df = df.filter(items=filter_items)
-                    # Store the data into the SQLiteDB
-                    df.to_sql(data_src_name, engine, if_exists="append", index=False)
+                with zip_ref.open(name=member, mode="r") as tmp_file:
+                    insert_into_db(tmp_file, data_src_name, filter_items)
+
+
+def insert_into_db(tmp_file, data_src_name, filter_items):
+    data_frame = pandas.read_csv(tmp_file, sep=";")
+
+    # Remove unnecessary columns from the DataFrame
+    data_frame = data_frame.filter(items=filter_items)
+
+    # print(data_frame)
+
+    # Store the data into the SQLiteDB
+    data_frame.to_sql(data_src_name, engine, if_exists="replace", index=False)
 
 
 if __name__ == "__main__":

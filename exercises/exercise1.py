@@ -11,19 +11,19 @@ def main():
 
     engine = sqlalchemy.create_engine("sqlite:///airports.db")
     data_frame.to_sql("airports", engine, if_exists="replace", index=False, dtype={
-        "column_1": sqlalchemy.types.INTEGER,
-        "column_2": sqlalchemy.types.TEXT,
-        "column_3": sqlalchemy.types.TEXT,
-        "column_4": sqlalchemy.types.TEXT,
-        "column_5": sqlalchemy.types.TEXT,
-        "column_6": sqlalchemy.types.TEXT,
-        "column_7": sqlalchemy.types.FLOAT,
-        "column_8": sqlalchemy.types.FLOAT,
-        "column_9": sqlalchemy.types.INTEGER,
-        "column_10": sqlalchemy.types.FLOAT,
-        "column_11": sqlalchemy.types.CHAR,
-        "column_12": sqlalchemy.types.TEXT,
-        "geo_punkt": sqlalchemy.types.TEXT,
+        "column_1": sqlalchemy.types.INTEGER,   # Lfd. Nummer
+        "column_2": sqlalchemy.types.TEXT,      # Name des Flughafens
+        "column_3": sqlalchemy.types.TEXT,      # Ort
+        "column_4": sqlalchemy.types.TEXT,      # Land
+        "column_5": sqlalchemy.types.TEXT,      # IATA
+        "column_6": sqlalchemy.types.TEXT,      # ICAO
+        "column_7": sqlalchemy.types.FLOAT,     # Latitude
+        "column_8": sqlalchemy.types.FLOAT,     # Longitude
+        "column_9": sqlalchemy.types.INTEGER,   # Altitude
+        "column_10": sqlalchemy.types.FLOAT,    # Zeitzone
+        "column_11": sqlalchemy.types.CHAR,     # DST
+        "column_12": sqlalchemy.types.TEXT,     # Zeitzonen-Datenbank
+        "geo_punkt": sqlalchemy.types.TEXT,     # geo_punkt
     })
 
 

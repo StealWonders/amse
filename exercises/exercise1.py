@@ -9,7 +9,7 @@ def main():
 
     # print(data_frame)
 
-    engine = sqlalchemy.create_engine("sqlite:///airports.db")
+    engine = sqlalchemy.create_engine("sqlite:///airports.sqlite")
     data_frame.to_sql("airports", engine, if_exists="replace", index=False, dtype={
         "column_1": sqlalchemy.types.INTEGER,   # Lfd. Nummer
         "column_2": sqlalchemy.types.TEXT,      # Name des Flughafens

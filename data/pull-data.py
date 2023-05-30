@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 import zipfile
 from ftplib import FTP
@@ -207,11 +208,18 @@ def download(ftp_uri: str, data_src_name: str, path: str):
     if not os.path.exists(data_src_dir):
         os.mkdir(data_src_dir)
 
-    # todo: filter files only within the last x years
+    # Filter files by timeframe (2000-2024)
+    filtered_files: list[str] = []
+    for file in files:
+        match = re.search(r"(\d{8})_(\d{8})", file)
+        if match:
+            start_date, end_date = match.group(1), match.group(2)
+            if start_date >= "20000101" and end_date <= "20240101":  # (2000-2024)
+                filtered_files.append(file)
 
     # Download each file
     desc: str = log(f"Downloading {data_src_name} from server", "status", ret_str=True)
-    progress = track(files, description=desc, transient=True)
+    progress = track(filtered_files, description=desc, transient=True)
     for file in progress:
         local_filename: str = os.path.join(data_src_dir, file)
         with open(local_filename, "wb") as f:

@@ -4,3 +4,4 @@ env/
 venv/
 data/processed_data/
 data/raw_data/
+data/.pytest_cache/

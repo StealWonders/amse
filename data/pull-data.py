@@ -197,7 +197,15 @@ def download(ftp_uri: str, data_src_name: str, path: str):
     if file_name is None or file_name == "":
         files = ftp.nlst()
     else:
-        files = [file_name]
+        log(f"Can not download single file: {file_name}", "error")
+        ftp.quit()
+        return
+
+    # Create a folder named after the data source if it doesn't already exist
+    data_src_dir: str = os.path.join(raw_data_dir, data_src_name)
+    print(data_src_dir)
+    if not os.path.exists(data_src_dir):
+        os.mkdir(data_src_dir)
 
     # todo: filter files only within the last x years
 
@@ -205,7 +213,7 @@ def download(ftp_uri: str, data_src_name: str, path: str):
     desc: str = log(f"Downloading {data_src_name} from server", "status", ret_str=True)
     progress = track(files, description=desc, transient=True)
     for file in progress:
-        local_filename: str = os.path.join(raw_data_dir, file)
+        local_filename: str = os.path.join(data_src_dir, file)
         with open(local_filename, "wb") as f:
             def callback(chunk):
                 f.write(chunk)

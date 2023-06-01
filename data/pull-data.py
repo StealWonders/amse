@@ -31,7 +31,7 @@ def main():
         os.makedirs(processed_data_dir)
 
     pull_power_data()
-    pull_station_date()
+    # pull_station_date()
     pull_weather_data()
     log("Completed data collection", timestamp=True)
 

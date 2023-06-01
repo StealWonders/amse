@@ -116,36 +116,36 @@ def pull_power_data():
         log("Extracted power_data", "success")
 
 
-def pull_station_date():
-    station_data_src: str = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/subdaily/wind/historical/FK_Terminwerte_Beschreibung_Stationen.txt"
-
-    # Only download the station_data if it doesn't exist
-    data_src_path: str = os.path.join(raw_data_dir, "station_data.txt")
-    if not os.path.exists(data_src_path):
-        response = requests.get(station_data_src)
-        if response.status_code == 200:
-            with open(data_src_path, "wb") as file:
-                file.write(response.content.decode("ISO-8859-1").encode("UTF-8"))  # Convert to UTF-8 encoding
-                log("Downloaded station_data", "success")
-        else:
-            log("Could not download station_data", "error")
-    else:
-        log("Found station_data files (skipping download)", "success")
-
-    # Insert the data into the database only if the table doesn't already exist
-    if sqlalchemy.inspect(engine).has_table("station_data"):
-        log("Found station_data table (skipping extraction)", "success")
-        return
-
-    # Extract the data from the file
-    column_widths = [(0, 5), (6, 14), (15, 23), (24, 38), (39, 50), (51, 60), (61, 101), (102, None)]
-    column_names = ["station_id", "von_datum", "bis_datum", "station_height", "latitude", "longitude", "station_name", "state"]
-
-    # Read the fixed-width file into a DataFrame
-    data_frame = pandas.read_fwf(data_src_path, colspecs=column_widths, names=column_names, skiprows=2)
-    data_frame.to_sql("station_data", engine, if_exists="replace", index=False)
-
-    log("Extracted station_data", "success")
+# def pull_station_date():
+#     station_data_src: str = "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/subdaily/wind/historical/FK_Terminwerte_Beschreibung_Stationen.txt"
+#
+#     # Only download the station_data if it doesn't exist
+#     data_src_path: str = os.path.join(raw_data_dir, "station_data.txt")
+#     if not os.path.exists(data_src_path):
+#         response = requests.get(station_data_src)
+#         if response.status_code == 200:
+#             with open(data_src_path, "wb") as file:
+#                 file.write(response.content.decode("ISO-8859-1").encode("UTF-8"))  # Convert to UTF-8 encoding
+#                 log("Downloaded station_data", "success")
+#         else:
+#             log("Could not download station_data", "error")
+#     else:
+#         log("Found station_data files (skipping download)", "success")
+#
+#     # Insert the data into the database only if the table doesn't already exist
+#     if sqlalchemy.inspect(engine).has_table("station_data"):
+#         log("Found station_data table (skipping extraction)", "success")
+#         return
+#
+#     # Extract the data from the file
+#     column_widths = [(0, 5), (6, 14), (15, 23), (24, 38), (39, 50), (51, 60), (61, 101), (102, None)]
+#     column_names = ["station_id", "von_datum", "bis_datum", "station_height", "latitude", "longitude", "station_name", "state"]
+#
+#     # Read the fixed-width file into a DataFrame
+#     data_frame = pandas.read_fwf(data_src_path, colspecs=column_widths, names=column_names, skiprows=2)
+#     data_frame.to_sql("station_data", engine, if_exists="replace", index=False)
+#
+#     log("Extracted station_data", "success")
 
 
 def pull_weather_data():
@@ -153,7 +153,7 @@ def pull_weather_data():
         {
             "name": "rain_data",
             "path": "climate_environment/CDC/observations_germany/climate/daily/more_precip/historical/",
-            "columns": ["STATIONS_ID", "MESS_DATUM", "  RS", " RSF"]
+            "columns": ["STATIONS_ID", "MESS_DATUM", "  RS", " RSF", "SH_TAG", "NSH_TAG"]
         },
         {
             "name": "cloud_data",
@@ -208,18 +208,18 @@ def download(ftp_uri: str, data_src_name: str, path: str):
     if not os.path.exists(data_src_dir):
         os.mkdir(data_src_dir)
 
-    # Filter files by timeframe (2000-2024)
-    filtered_files: list[str] = []
-    for file in files:
-        match = re.search(r"(\d{8})_(\d{8})", file)
-        if match:
-            start_date, end_date = match.group(1), match.group(2)
-            if start_date >= "20000101" and end_date <= "20240101":  # (2000-2024)
-                filtered_files.append(file)
+    # # Filter files by timeframe (2000-2024)
+    # filtered_files: list[str] = []
+    # for file in files:
+    #     match = re.search(r"(\d{8})_(\d{8})", file)
+    #     if match:
+    #         start_date, end_date = match.group(1), match.group(2)
+    #         if start_date >= "20000101" and end_date <= "20240101":  # (2000-2024)
+    #             filtered_files.append(file)
 
     # Download each file
     desc: str = log(f"Downloading {data_src_name} from server", "status", ret_str=True)
-    progress = track(filtered_files, description=desc, transient=True)
+    progress = track(files, description=desc, transient=True)
     for file in progress:
         local_filename: str = os.path.join(data_src_dir, file)
         with open(local_filename, "wb") as f:
@@ -259,7 +259,7 @@ def extract_data_source(data_src_name: str, filter_items: list[str]):
                     # print(data_frame)
 
                     # Store the data into the SQLiteDB
-                    data_frame.to_sql(data_src_name, engine, if_exists="replace", index=False)
+                    data_frame.to_sql(data_src_name, engine, if_exists="append", index=False)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,40 @@
+pipeline Trainstops {
+
+    TrainstopsExtractor
+        -> TrainstopsTextFileInterpreter
+        -> TrainstopsCSVInterpreter
+        -> TrainstopsTableInterpreter
+        -> TrainstopsLoader;
+
+
+    block TrainstopsExtractor oftype HttpExtractor {
+        url: "https://download-data.deutschebahn.com/static/datasets/haltestellen/D_Bahnhof_2020_alle.CSV";
+    }
+
+    block TrainstopsTextFileInterpreter oftype TextFileInterpreter { }
+
+    block TrainstopsCSVInterpreter oftype CSVInterpreter {  
+        delimiter: ";";
+    }
+
+    block TrainstopsTableInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+            "EVA_NR" oftype integer,
+            "DS100" oftype text,
+            "IFOPT" oftype text,
+            "NAME" oftype text,
+            "Verkehr" oftype text,
+            "Laenge" oftype decimal,
+            "Breite" oftype decimal,
+            "Betreiber_Name" oftype text,
+            "Betreiber_Nr" oftype integer,
+        ];
+    }
+
+    block TrainstopsLoader oftype SQLiteLoader {
+        table: "trainstops";
+        file: "trainstops.sqlite";
+    }
+
+}

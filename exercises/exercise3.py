@@ -18,6 +18,12 @@ def main():
         72: "others",
     }
 
+    col_types = {
+        "date": str,
+        "CIN": str,
+        "name": str,
+    }
+
     data_frame = pandas.read_csv(car_data_src,
                                  engine="python",
                                  encoding="ISO-8859-1",
@@ -25,34 +31,20 @@ def main():
                                  skiprows=7,
                                  skipfooter=4,
                                  usecols=keep_columns.keys(),
-                                 names=keep_columns.values())
+                                 names=keep_columns.values(),
+                                 dtype=col_types)
 
     # print(data_frame)
-
-    # date example: 01.01.2022
-    data_frame["date"] = pandas.to_datetime(data_frame["date"], format="%d.%m.%Y")
 
     # CIN example: 12345
     data_frame["CIN"] = data_frame["CIN"].astype(str)
     cin_format = "^[0-9]{5}$"
     data_frame = data_frame[data_frame["CIN"].str.match(cin_format)]
 
-    data_frame["petrol"] = pandas.to_numeric(data_frame["petrol"], downcast="integer", errors="coerce")
-    data_frame["diesel"] = pandas.to_numeric(data_frame["diesel"], downcast="integer", errors="coerce")
-    data_frame["gas"] = pandas.to_numeric(data_frame["gas"], downcast="integer", errors="coerce")
-    data_frame["electro"] = pandas.to_numeric(data_frame["electro"], downcast="integer", errors="coerce")
-    data_frame["hybrid"] = pandas.to_numeric(data_frame["hybrid"], downcast="integer", errors="coerce")
-    data_frame["plugInHybrid"] = pandas.to_numeric(data_frame["plugInHybrid"], downcast="integer", errors="coerce")
-    data_frame["others"] = pandas.to_numeric(data_frame["others"], downcast="integer", errors="coerce")
-
     # all other columns (apart from date, cin and name) should be a positive integer > 0
-    data_frame = data_frame[(data_frame["petrol"] > 0) &
-                            (data_frame["diesel"] > 0) &
-                            (data_frame["gas"] > 0) &
-                            (data_frame["electro"] > 0) &
-                            (data_frame["hybrid"] > 0) &
-                            (data_frame["plugInHybrid"] > 0) &
-                            (data_frame["others"] > 0)]
+    numeric_columns = ["petrol", "diesel", "gas", "electro", "hybrid", "plugInHybrid", "others"]
+    data_frame[numeric_columns] = data_frame[numeric_columns].apply(pandas.to_numeric, downcast="integer", errors="coerce")
+    data_frame = data_frame[(data_frame[numeric_columns] > 0).all(axis=1)]
 
     data_frame.dropna()  # drop all rows with NaN values
 
@@ -60,18 +52,7 @@ def main():
     # print(data_frame)
 
     engine = sqlalchemy.create_engine("sqlite:///cars.sqlite")
-    data_frame.to_sql("cars", engine, if_exists="replace", index=False, dtype={
-        "date":         sqlalchemy.types.DATE,
-        "CIN":          sqlalchemy.types.TEXT,
-        "name":         sqlalchemy.types.TEXT,
-        "petrol":       sqlalchemy.types.INTEGER,
-        "diesel":       sqlalchemy.types.INTEGER,
-        "gas":          sqlalchemy.types.INTEGER,
-        "electro":      sqlalchemy.types.INTEGER,
-        "hybrid":       sqlalchemy.types.INTEGER,
-        "plugInHybrid": sqlalchemy.types.INTEGER,
-        "others":       sqlalchemy.types.INTEGER
-    })
+    data_frame.to_sql("cars", engine, if_exists="replace", index=False)
 
 
 if __name__ == "__main__":

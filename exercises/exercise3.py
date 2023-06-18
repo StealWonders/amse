@@ -52,7 +52,15 @@ def main():
     # print(data_frame)
 
     engine = sqlalchemy.create_engine("sqlite:///cars.sqlite")
-    data_frame.to_sql("cars", engine, if_exists="replace", index=False)
+    data_frame.to_sql("cars", engine, if_exists="replace", index=False, dtype={
+        "petrol":       sqlalchemy.types.INTEGER,
+        "diesel":       sqlalchemy.types.INTEGER,
+        "gas":          sqlalchemy.types.INTEGER,
+        "electro":      sqlalchemy.types.INTEGER,
+        "hybrid":       sqlalchemy.types.INTEGER,
+        "plugInHybrid": sqlalchemy.types.INTEGER,
+        "others":       sqlalchemy.types.INTEGER,
+    })
 
 
 if __name__ == "__main__":

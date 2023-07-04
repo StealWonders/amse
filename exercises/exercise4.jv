@@ -1,0 +1,112 @@
+valuetype uint oftype integer {
+    constraints: [
+        PositiveNumber
+    ];
+}
+
+constraint PositiveNumber oftype RangeConstraint {
+    lowerBound: 0;
+}
+
+valuetype Month oftype integer {
+    constraints: [
+        ValidMonth
+    ];
+}
+
+constraint ValidMonth oftype RangeConstraint {
+    lowerBound: 1;
+    lowerBoundInclusive: true;
+    upperBound: 12;
+    upperBoundInclusive: true;
+}
+
+valuetype TextBoolean oftype text {
+    constraints: [
+        ValidTextBoolean
+    ];
+}
+
+constraint ValidTextBoolean oftype AllowlistConstraint {
+    allowlist: ["Ja", "Nein"];
+}
+
+transform CelsiusToFarenheit {
+    from temperaturCelsius oftype decimal;
+    to temperaturFarenheit oftype decimal;
+    temperaturFarenheit: (temperaturCelsius * 9) / 5 + 32 ;
+}
+
+pipeline TemperaturePipeline {
+
+    BatteryTemperatureExtractor
+        -> ZipArchiveInterpreter
+        -> TemperatureDataFilePicker
+        -> TemperatureTextFileInterpreter
+        -> TemperatureCSVInterpreter
+        -> RenameDWDTemperature
+        -> RenameBatteryTemperature
+        -> TemperatureTableInterpreter
+        -> TemperatureUnitConverter
+        -> BatteryTemperatureUnitConverter
+        -> TemperatureLoader;
+
+    block BatteryTemperatureExtractor oftype HttpExtractor {
+        url: "https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip";
+    }
+
+    block ZipArchiveInterpreter oftype ArchiveInterpreter {
+        archiveType: "zip";
+    }
+
+    block TemperatureDataFilePicker oftype FilePicker {
+        path: "/data.csv";
+    }
+
+    block TemperatureTextFileInterpreter oftype TextFileInterpreter { }
+    
+    block TemperatureCSVInterpreter oftype CSVInterpreter { 
+        delimiter: ";";
+    }
+
+    block RenameDWDTemperature oftype CellWriter{
+        at: cell E1;
+        write: ["Temperatur"];
+    }
+    
+    block RenameBatteryTemperature oftype CellWriter{
+        at: cell J1;
+        write: ["Batterietemperatur"];
+    }
+
+    block TemperatureTableInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+            "Geraet"             oftype uint, 
+            "Hersteller"         oftype text, 
+            "Model"              oftype text, 
+            "Monat"              oftype Month, 
+            "Temperatur"         oftype decimal, 
+            "Batterietemperatur" oftype decimal, 
+            "Geraet aktiv"       oftype TextBoolean, 
+        ];
+    }
+
+    block TemperatureUnitConverter oftype TableTransformer{
+        inputColumn:  "Temperatur";
+        outputColumn: "Temperatur";
+        use: CelsiusToFarenheit;
+    }   
+
+    block BatteryTemperatureUnitConverter oftype TableTransformer {
+        inputColumn:  "Batterietemperatur";
+        outputColumn: "Batterietemperatur";
+        use: CelsiusToFarenheit;
+    }
+
+    block TemperatureLoader oftype SQLiteLoader {
+        table: "temperatures";
+        file: "temperatures.sqlite";
+    }
+
+}
